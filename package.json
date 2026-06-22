@@ -1,0 +1,17 @@
+{
+  "name": "yancao-platform",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@9.15.4",
+  "scripts": {
+    "dev:screen": "pnpm --filter @yancao/screen-web dev",
+    "dev:admin": "pnpm --filter @yancao/admin-web dev",
+    "build": "pnpm -r build",
+    "build:screen": "pnpm --filter @yancao/screen-web build",
+    "build:admin": "pnpm --filter @yancao/admin-web build",
+    "typecheck": "pnpm -r typecheck"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  }
+}

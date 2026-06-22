@@ -1,0 +1,12 @@
+:root {
+  --yc-screen-bg: #071b2f;
+  --yc-panel-bg: rgba(12, 69, 112, 0.72);
+  --yc-panel-border: rgba(86, 190, 255, 0.36);
+  --yc-title: #e9f7ff;
+  --yc-text: #ccecff;
+  --yc-muted: #7ebde0;
+  --yc-accent: #20d6ff;
+  --yc-success: #39d353;
+  --yc-warning: #ffe04f;
+  --yc-danger: #ff4d4f;
+}

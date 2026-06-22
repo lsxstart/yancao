@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>&#x6280;&#x672f;&#x9009;&#x578b;</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <span id="markdown-mermaid" aria-hidden="true" data-config="{&quot;darkModeTheme&quot;:&quot;vscode&quot;,&quot;lightModeTheme&quot;:&quot;vscode&quot;,&quot;maxTextSize&quot;:50000,&quot;clickDrag&quot;:&quot;alt&quot;,&quot;showControls&quot;:&quot;onHoverOrFocus&quot;,&quot;resizable&quot;:true,&quot;maxHeight&quot;:&quot;&quot;}"></span>
+				<h2 id="技术选型">技术选型</h2>
+<p>首先如果只考虑技术上，我更偏向于这一套：</p>
+<blockquote>
+<p>前端采用 <a href="https://react.dev/">React</a> 技术栈，后端继续完全复用 <a href="https://doc.ruoyi.vip/">RuoYi</a>，前端单独做一层 RuoYi 协议适配。</p>
+<p>RuoYi 后端本质上提供的是登录、用户、角色、权限、菜单、字典、接口权限、数据权限这些能力。前端只要把它的接口格式、权限字符、动态菜单、字典体系适配好，就可以正常使用 React 技术栈。</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>选型项</th>
+<th>推荐方案</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>前端框架</td>
+<td><a href="https://react.dev/">React</a></td>
+<td>主前端框架，负责 PC 管理后台和可视化大屏的页面开发</td>
+</tr>
+<tr>
+<td>打包工具</td>
+<td><a href="https://vite.dev/">Vite</a></td>
+<td>开发体验好，构建速度快，我们之前项目也在用</td>
+</tr>
+<tr>
+<td>路由</td>
+<td><a href="https://tanstack.com/router/latest">TanStack Router</a></td>
+<td>React 生态里比较成熟的路由方案，需要适配 RuoYi 动态菜单</td>
+</tr>
+<tr>
+<td>接口状态</td>
+<td><a href="https://tanstack.com/query/latest">TanStack Query</a></td>
+<td>管理接口数据，比如列表、详情、字典、菜单、统计数据、图表数据</td>
+</tr>
+<tr>
+<td>本地状态</td>
+<td><a href="https://zustand-demo.pmnd.rs/">Zustand</a></td>
+<td>管理 token、用户信息、roles、permissions、菜单、主题、布局等本地状态</td>
+</tr>
+<tr>
+<td>中后台组件库</td>
+<td><a href="https://ant.design/">Ant Design</a></td>
+<td>React 生态里成熟的中后台组件库，适合 CRUD 页面和管理后台</td>
+</tr>
+<tr>
+<td>普通 CRUD 表单</td>
+<td><a href="https://ant.design/components/form-cn/">Ant Design Form</a></td>
+<td>和 Ant Design 组件配合最自然，适合普通新增、编辑、查询表单</td>
+</tr>
+<tr>
+<td>复杂业务表单</td>
+<td><a href="https://react-hook-form.com/">React Hook Form</a> + <a href="https://zod.dev/">Zod</a></td>
+<td>适合复杂表单、动态字段、多步骤表单和 schema 校验</td>
+</tr>
+<tr>
+<td>权限控制</td>
+<td>自行开发 <a href="https://doc.ruoyi.vip/">RuoYi</a> 权限适配层</td>
+<td>消费 RuoYi 返回的 <code>roles</code> 和 <code>permissions</code>，封装按钮权限、菜单权限、路由守卫</td>
+</tr>
+<tr>
+<td>图表</td>
+<td><a href="https://echarts.apache.org/">ECharts</a></td>
+<td>用于统计图表、大屏图表、趋势图、分布图等</td>
+</tr>
+<tr>
+<td>地图</td>
+<td><a href="https://openlayers.org/">OpenLayers</a></td>
+<td>适合自有 GIS、地块边界、离线瓦片、区域图层等场景</td>
+</tr>
+<tr>
+<td>小程序</td>
+<td><a href="https://docs.taro.zone/">Taro</a></td>
+<td>主栈是 React，Taro 可以尽量保持 React 语法和工程习惯一致</td>
+</tr>
+<tr>
+<td>HTTP Client</td>
+<td><a href="https://axios-http.com/">Axios</a> 封装为 RuoYi Client</td>
+<td>统一处理 token、请求拦截、响应 code、分页、上传下载、导入导出等；现有 App 和大屏应该已经做了类似封装</td>
+</tr>
+</tbody>
+</table>
+<h2 id="monorepo">Monorepo</h2>
+<pre><code class="language-text">repo/
+├─ apps/                         # 具体前端应用
+│  ├─ admin-web/                 # PC 管理后台
+│  ├─ screen-web/                # 可视化大屏
+│  └─ mobile-miniapp/            # Taro 小程序
+│
+├─ packages/                     # 多端复用的公共代码
+│  ├─ domain/                    # 业务类型和校验规则
+│  ├─ sdk/                       # 接口请求封装，适配 RuoYi 后端
+│  ├─ auth/                      # 登录、权限、路由守卫
+│  ├─ ui-tokens/                 # 统一颜色、字号、间距、主题变量
+│  ├─ ui-react/                  # PC 后台复用组件
+│  ├─ ui-mobile/                 # 小程序复用组件
+│  └─ charts/                    # ECharts 图表配置、主题和数据转换
+│
+└─ infra/                        # 工程、部署和脚本
+   ├─ ci/                        # CI/CD 配置
+   ├─ docker/                    # Docker / Nginx 配置
+   └─ scripts/                   # 构建、部署、代码生成脚本
+</code></pre>
+<p>很多能力需要在多个端之间复用，比如类型定义、接口 client、权限判断、字典处理、图表配置、主题变量、测试 mock 等。</p>
+<p>所以建议把具体应用放在 <code>apps</code>，把可复用能力放在 <code>packages</code>。</p>
+
+            
+            
+        </body>
+        </html>
