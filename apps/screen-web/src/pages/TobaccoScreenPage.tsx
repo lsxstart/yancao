@@ -49,8 +49,9 @@ export function TobaccoScreenPage() {
   return (
     <main className="screen-page">
       <header className="screen-title">
+        <img className="screen-logo" src="/logo/9547aa6d08d7a72e9a040a7918a7cfe6.png" alt="平台标识" />
         <div>
-          <h1>烟草病虫害监测与防治大屏</h1>
+          <h1>烟草病毒病人工智能监测预警系统</h1>
         </div>
         <RegionSwitch
           regions={regionsQuery.data ?? []}

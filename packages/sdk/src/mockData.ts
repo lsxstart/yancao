@@ -9,8 +9,8 @@ import type {
 
 export const regions: Region[] = [
   { id: "xunyi", name: "旬邑", center: [120, 60], description: "山地烟田重点监测区" },
-  { id: "wugong", name: "咸阳", center: [320, 160], description: "平原示范烟田监测区" },
-  { id: "yanan", name: "延安", center: [520, 90], description: "丘陵烟叶病害预警区" }
+  { id: "fuxian", name: "富县", center: [320, 160], description: "塬区烟田重点监测区" },
+  { id: "baoji", name: "宝鸡", center: [520, 90], description: "丘陵烟叶病害预警区" }
 ];
 
 export const plots: Plot[] = [
@@ -45,9 +45,9 @@ export const plots: Plot[] = [
     coordinates: [[96, 210], [176, 226], [158, 288], [72, 265]]
   },
   {
-    id: "wugong-002",
-    regionId: "wugong",
-    name: "咸阳002号地块",
+    id: "fuxian-002",
+    regionId: "fuxian",
+    name: "富县002号地块",
     areaMu: 55.2,
     healthRate: 91.5,
     diseaseLevel: "healthy",
@@ -55,9 +55,9 @@ export const plots: Plot[] = [
     coordinates: [[350, 180], [454, 168], [482, 236], [370, 258]]
   },
   {
-    id: "yanan-006",
-    regionId: "yanan",
-    name: "延安006号地块",
+    id: "baoji-006",
+    regionId: "baoji",
+    name: "宝鸡006号地块",
     areaMu: 47.9,
     healthRate: 72.1,
     diseaseLevel: "medium",
@@ -91,9 +91,9 @@ export const warnings: WarningInfo[] = [
   },
   {
     id: "warn-003",
-    regionId: "yanan",
-    plotId: "yanan-006",
-    plotName: "延安006号地块",
+    regionId: "baoji",
+    plotId: "baoji-006",
+    plotName: "宝鸡006号地块",
     diseaseName: "赤星病",
     diseaseLevel: "medium",
     healthRate: 72.1,
@@ -115,7 +115,7 @@ export const weatherConditions: WeatherCondition[] = [
     soilTemperature: 23.1
   },
   {
-    regionId: "wugong",
+    regionId: "fuxian",
     temperature: 25.6,
     windDirection: "东南风",
     rainfall: 0.1,
@@ -126,7 +126,7 @@ export const weatherConditions: WeatherCondition[] = [
     soilTemperature: 24.4
   },
   {
-    regionId: "yanan",
+    regionId: "baoji",
     temperature: 21.8,
     windDirection: "北风",
     rainfall: 0.8,

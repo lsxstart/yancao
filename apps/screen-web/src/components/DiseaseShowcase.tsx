@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { DiseaseCase, Plot } from "@yancao/domain";
 
 interface DiseaseShowcaseProps {
@@ -58,13 +58,6 @@ const tobaccoVirusCases: TobaccoVirusCase[] = [
 
 export function DiseaseShowcase({}: DiseaseShowcaseProps) {
   const [activeIndex, setActiveIndex] = useState(0);
-
-  useEffect(() => {
-    const timer = window.setInterval(() => {
-      setActiveIndex((index) => (index + 1) % tobaccoVirusCases.length);
-    }, 5000);
-    return () => window.clearInterval(timer);
-  }, []);
 
   const diseaseCase = tobaccoVirusCases[activeIndex];
 

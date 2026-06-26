@@ -6,6 +6,14 @@ interface WarningPanelProps {
 
 const detectedDiseaseName = "烟草病毒病";
 
+const plotCoordinates: Record<string, string> = {
+  "xunyi-003": "35.12°N, 108.33°E",
+  "xunyi-001": "35.10°N, 108.31°E",
+  "xunyi-007": "35.09°N, 108.36°E",
+  "fuxian-002": "35.99°N, 109.38°E",
+  "baoji-006": "34.36°N, 107.24°E"
+};
+
 export function WarningPanel({ plot }: WarningPanelProps) {
   if (!plot) return null;
 
@@ -14,16 +22,16 @@ export function WarningPanel({ plot }: WarningPanelProps) {
   const normalCount = totalCount - diseasedCount;
   const diseaseRatio = Number((100 - plot.healthRate).toFixed(1));
   const healthyRatio = Number(plot.healthRate.toFixed(1));
-  const diseaseDegree = diseaseRatio >= 30 ? "严重" : diseaseRatio >= 15 ? "中等" : "轻微";
+  const diseaseDegree = diseaseRatio >= 30 ? "重度" : diseaseRatio >= 15 ? "中度" : "轻度";
+  const plotCoordinate = plotCoordinates[plot.id] ?? "35.12°N, 108.33°E";
 
   return (
     <div className={`plot-monitor level-${plot.diseaseLevel}`}>
       <section className="plot-monitor-result" aria-label="检测结果">
         <div>
-          <span>识别结果</span>
-          <strong>{detectedDiseaseName}</strong>
+          <span>病害识别结果</span>
         </div>
-        <b>{diseaseRatio}%</b>
+        <strong>{detectedDiseaseName}</strong>
       </section>
 
       <section className="plot-monitor-scale" aria-label="烟苗健康分布">
@@ -47,12 +55,12 @@ export function WarningPanel({ plot }: WarningPanelProps) {
           <strong>{diseasedCount}</strong>
         </div>
         <div>
-          <span>检测总量</span>
-          <strong>{totalCount}</strong>
-        </div>
-        <div>
           <span>发病程度</span>
           <strong>{diseaseDegree}</strong>
+        </div>
+        <div className="location">
+          <span>地块位置</span>
+          <strong>{plotCoordinate}</strong>
         </div>
       </section>
     </div>

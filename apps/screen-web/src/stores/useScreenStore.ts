@@ -17,9 +17,9 @@ export const useScreenStore = create<ScreenState>()((set) => ({
       selectedPlotId:
         selectedRegionId === "xunyi"
           ? "xunyi-003"
-          : selectedRegionId === "wugong"
-            ? "wugong-002"
-            : "yanan-006"
+          : selectedRegionId === "fuxian"
+            ? "fuxian-002"
+            : "baoji-006"
     })),
   setSelectedPlotId: (selectedPlotId) => set(() => ({ selectedPlotId }))
 }));

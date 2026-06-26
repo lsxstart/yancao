@@ -1,4 +1,4 @@
-export type RegionId = "xunyi" | "wugong" | "yanan";
+export type RegionId = "xunyi" | "fuxian" | "baoji";
 
 export type DiseaseLevel = "healthy" | "light" | "medium" | "severe";
 
