@@ -1,8 +1,9 @@
-import { useState } from "react";
-import type { Plot } from "@yancao/domain";
+import { useState, type CSSProperties } from "react";
+import type { DroneDetectionRecord, ScreenPlot } from "../api";
 
 interface StatsPanelProps {
-  plots: Plot[];
+  detections: DroneDetectionRecord[];
+  plots: ScreenPlot[];
   regionName: string;
 }
 
@@ -22,12 +23,9 @@ const gradeMeta: Record<DiseaseGrade, GradeMeta> = {
 const gradeOrder: DiseaseGrade[] = ["light", "medium", "heavy"];
 const ringRadius = 42;
 const ringCircumference = 2 * Math.PI * ringRadius;
-const trendWidth = 300;
-const trendHeight = 108;
-const trendPadding = { top: 12, right: 12, bottom: 22, left: 28 };
 
-function getDiseaseRate(plot: Plot) {
-  return Number((100 - plot.healthRate).toFixed(1));
+function getRate(record?: DroneDetectionRecord) {
+  return Number((record?.infectionRate ?? 0).toFixed(1));
 }
 
 function getGrade(rate: number): DiseaseGrade {
@@ -36,61 +34,51 @@ function getGrade(rate: number): DiseaseGrade {
   return "heavy";
 }
 
-function formatDateLabel(offsetFromToday: number) {
-  const date = new Date();
-  date.setDate(date.getDate() + offsetFromToday);
-  return `${date.getMonth() + 1}/${date.getDate()}`;
+function getLatestDetections(detections: DroneDetectionRecord[]) {
+  const map = new Map<number, DroneDetectionRecord>();
+  detections
+    .slice()
+    .sort((a, b) => String(b.detectTime ?? b.createTime ?? "").localeCompare(String(a.detectTime ?? a.createTime ?? "")))
+    .forEach((record) => {
+      if (!map.has(record.plotId)) {
+        map.set(record.plotId, record);
+      }
+    });
+  return map;
 }
 
-function buildTrend(currentRate: number) {
-  const offsets = [-6, -5, -4, -3, -2, -1, 0];
-  const baseDeltas = [-4.6, -3.8, -2.9, -2.1, -1.4, -0.8, 0];
-
-  return offsets.map((offset, index) => ({
-    date: formatDateLabel(offset),
-    rate: Number(Math.max(0, currentRate + baseDeltas[index]).toFixed(1))
-  }));
-}
-
-export function StatsPanel({ plots, regionName }: StatsPanelProps) {
+export function StatsPanel({ detections, plots, regionName }: StatsPanelProps) {
   const [hoveredGrade, setHoveredGrade] = useState<DiseaseGrade | null>(null);
-  const groupedPlots = gradeOrder.reduce<Record<DiseaseGrade, Array<Plot & { diseaseRate: number }>>>(
+  const latestDetections = getLatestDetections(detections);
+  const plotStats = plots.map((plot) => {
+    const detection = latestDetections.get(plot.id);
+    const diseaseRate = getRate(detection);
+    return {
+      ...plot,
+      detection,
+      diseaseRate,
+      grade: getGrade(diseaseRate)
+    };
+  });
+  const groupedPlots = gradeOrder.reduce<Record<DiseaseGrade, typeof plotStats>>(
     (groups, grade) => {
-      groups[grade] = [];
+      groups[grade] = plotStats.filter((plot) => plot.grade === grade);
       return groups;
     },
-    {} as Record<DiseaseGrade, Array<Plot & { diseaseRate: number }>>
+    {} as Record<DiseaseGrade, typeof plotStats>
   );
-
-  plots.forEach((plot) => {
-    const diseaseRate = getDiseaseRate(plot);
-    groupedPlots[getGrade(diseaseRate)].push({ ...plot, diseaseRate });
-  });
-
-  const currentRate = plots.length
-    ? Number((plots.reduce((sum, plot) => sum + getDiseaseRate(plot), 0) / plots.length).toFixed(1))
-    : 0;
-  const trendData = buildTrend(currentRate);
-  const yesterdayRate = trendData[trendData.length - 2]?.rate ?? currentRate;
-  const dayChange = Number((currentRate - yesterdayRate).toFixed(1));
-  const trendDirection = currentRate > trendData[0].rate ? "上升" : currentRate < trendData[0].rate ? "下降" : "平稳";
-  const rates = trendData.map((item) => item.rate);
-  const minRate = Math.max(0, Math.min(...rates) - 2);
-  const maxRate = Math.max(...rates) + 2;
-  const xStep = (trendWidth - trendPadding.left - trendPadding.right) / Math.max(trendData.length - 1, 1);
-  const yScale = (rate: number) => {
-    const drawableHeight = trendHeight - trendPadding.top - trendPadding.bottom;
-    return trendPadding.top + (maxRate - rate) / Math.max(maxRate - minRate, 1) * drawableHeight;
-  };
-  const trendPoints = trendData.map((item, index) => ({
-    ...item,
-    x: trendPadding.left + index * xStep,
-    y: yScale(item.rate)
-  }));
-  const polylinePoints = trendPoints.map((point) => `${point.x},${point.y}`).join(" ");
-  const areaPoints = `${trendPadding.left},${trendHeight - trendPadding.bottom} ${polylinePoints} ${trendWidth - trendPadding.right},${trendHeight - trendPadding.bottom}`;
-  let dashOffset = 0;
   const activeGrade = hoveredGrade ?? "heavy";
+  const currentRate = plotStats.length
+    ? Number((plotStats.reduce((sum, plot) => sum + plot.diseaseRate, 0) / plotStats.length).toFixed(1))
+    : 0;
+  const maxRate = Math.ceil(Math.max(15, ...plotStats.map((plot) => plot.diseaseRate)) / 5) * 5;
+  const yTicks = [maxRate, Math.round(maxRate / 2), 0];
+  const diseaseRates = plotStats.map((plot) => plot.diseaseRate);
+  const maxDiseaseRate = Math.max(...diseaseRates);
+  const minDiseaseRate = Math.min(...diseaseRates);
+  const firstMaxIndex = plotStats.findIndex((item) => item.diseaseRate === maxDiseaseRate);
+  const firstMinIndex = plotStats.findIndex((item) => item.diseaseRate === minDiseaseRate);
+  let dashOffset = 0;
 
   return (
     <div className="region-stats">
@@ -100,7 +88,7 @@ export function StatsPanel({ plots, regionName }: StatsPanelProps) {
             <circle className="region-risk-ring-bg" cx="60" cy="60" r={ringRadius} />
             {gradeOrder.map((grade) => {
               const count = groupedPlots[grade].length;
-              const dashLength = plots.length ? (count / plots.length) * ringCircumference : 0;
+              const dashLength = plotStats.length ? (count / plotStats.length) * ringCircumference : 0;
               const segment = (
                 <circle
                   className={`region-risk-segment ${hoveredGrade === grade ? "active" : ""}`}
@@ -120,14 +108,14 @@ export function StatsPanel({ plots, regionName }: StatsPanelProps) {
             })}
           </svg>
           <div className="region-risk-center">
-            <strong>{plots.length}</strong>
+            <strong>{plotStats.length}</strong>
             <span>{regionName}</span>
           </div>
           <div className="region-risk-tooltip">
             <strong>{gradeMeta[activeGrade].label}地块</strong>
             {groupedPlots[activeGrade].length > 0 ? (
               groupedPlots[activeGrade].map((plot) => (
-                <span key={plot.id}>{plot.name}</span>
+                <span key={plot.id}>{plot.plotName}</span>
               ))
             ) : (
               <span>暂无地块</span>
@@ -145,32 +133,38 @@ export function StatsPanel({ plots, regionName }: StatsPanelProps) {
         </div>
       </section>
 
-      <section className="region-trend-panel">
-        <svg className="region-trend-chart" viewBox={`0 0 ${trendWidth} ${trendHeight}`} role="img" aria-label="近7天发病率趋势">
-          <line className="region-trend-grid" x1={trendPadding.left} x2={trendWidth - trendPadding.right} y1={trendPadding.top} y2={trendPadding.top} />
-          <line className="region-trend-grid" x1={trendPadding.left} x2={trendWidth - trendPadding.right} y1={(trendHeight - trendPadding.bottom + trendPadding.top) / 2} y2={(trendHeight - trendPadding.bottom + trendPadding.top) / 2} />
-          <line className="region-trend-grid" x1={trendPadding.left} x2={trendWidth - trendPadding.right} y1={trendHeight - trendPadding.bottom} y2={trendHeight - trendPadding.bottom} />
-          <polygon className="region-trend-area" points={areaPoints} />
-          <polyline className="region-trend-line" points={polylinePoints} />
-          {trendPoints.map((point, index) => (
-            <g key={point.date}>
-              <circle className="region-trend-dot" cx={point.x} cy={point.y} r={index === trendPoints.length - 1 ? 3.5 : 2.5} />
-              {(index === 0 || index === trendPoints.length - 1) && (
-                <text className="region-trend-date" x={point.x} y={trendHeight - 5} textAnchor={index === 0 ? "start" : "end"}>
-                  {point.date}
-                </text>
-              )}
-            </g>
-          ))}
-          <text className="region-trend-axis" x={trendPadding.left - 4} y={trendPadding.top + 4} textAnchor="end">
-            {Math.round(maxRate)}%
-          </text>
-          <text className="region-trend-axis" x={trendPadding.left - 4} y={trendHeight - trendPadding.bottom + 4} textAnchor="end">
-            {Math.round(minRate)}%
-          </text>
-        </svg>
+      <section className="region-bar-panel">
+        <div className="region-bar-chart-with-axis" role="img" aria-label="各烟田发病率柱状图">
+          <div className="region-bar-y-axis">
+            {yTicks.map((tick) => (
+              <span key={tick}>{tick}%</span>
+            ))}
+          </div>
+          <div className="region-bar-plot">
+            <div className="region-bar-grid">
+              {yTicks.map((tick) => (
+                <i key={tick} />
+              ))}
+            </div>
+            <div className="region-bar-chart">
+              {plotStats.map((plot, index) => {
+                const height = `${Math.max(18, plot.diseaseRate / maxRate * 100)}%`;
+                const shouldShowValue = index === firstMaxIndex || index === firstMinIndex;
+                return (
+                  <div className="region-bar-item" key={plot.id} title={`${plot.plotName}：${plot.diseaseRate}%`}>
+                    <div className="region-bar-column" style={{ "--bar-height": height } as CSSProperties}>
+                      {shouldShowValue ? <span>{plot.diseaseRate}%</span> : null}
+                      <i style={{ height, background: gradeMeta[plot.grade].color }} />
+                    </div>
+                    <em />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
         <p className="region-trend-summary">
-          当前发病率{currentRate}%，较昨日{dayChange >= 0 ? "+" : ""}{dayChange}%，近7天呈{trendDirection}趋势
+          当前平均发病率{currentRate}%，共监测{plotStats.length}个烟田
         </p>
       </section>
     </div>

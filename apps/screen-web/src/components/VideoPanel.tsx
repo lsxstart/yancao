@@ -1,8 +1,11 @@
-import type { Plot } from "@yancao/domain";
+interface VideoPlot {
+  id: number;
+  name: string;
+}
 
 interface VideoPanelProps {
-  plots: Plot[];
-  selectedPlotId: string;
+  plots: VideoPlot[];
+  selectedPlotId?: number;
 }
 
 export function VideoPanel({ plots, selectedPlotId }: VideoPanelProps) {

@@ -1,4 +1,5 @@
 import { useEffect, useState, type MouseEvent, type WheelEvent } from "react";
+import type { DroneDetectionRecord } from "../api";
 
 interface InspectionImage {
   id: string;
@@ -8,24 +9,11 @@ interface InspectionImage {
   description: string;
 }
 
-const inspectionImages: InspectionImage[] = [
-  {
-    id: "source",
-    title: "地块原始图片",
-    src: "/pic/display/原始地块1.jpg",
-    alt: "地块原始图片",
-    description: "无人机采集的原始地块影像"
-  },
-  {
-    id: "detection",
-    title: "检测地块图片",
-    src: "/pic/display/检测地块1.jpg",
-    alt: "检测地块图片",
-    description: "烟草病毒病识别结果影像"
-  }
-];
+interface MapPanelProps {
+  detection?: DroneDetectionRecord;
+}
 
-export function MapPanel() {
+export function MapPanel({ detection }: MapPanelProps) {
   const [previewImage, setPreviewImage] = useState<InspectionImage | null>(null);
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -50,6 +38,23 @@ export function MapPanel() {
     setPosition({ x: 0, y: 0 });
     setDragStart(null);
   };
+
+  const inspectionImages: InspectionImage[] = [
+    {
+      id: "source",
+      title: "地块原始图片",
+      src: detection?.oriImageUrl || "/pic/display/原始地块1.jpg",
+      alt: "地块原始图片",
+      description: "无人机采集的原始地块影像"
+    },
+    {
+      id: "detection",
+      title: "检测地块图片",
+      src: detection?.resultImageUrl || "/pic/display/检测地块1.jpg",
+      alt: "检测地块图片",
+      description: "烟草病毒病识别结果影像"
+    }
+  ];
 
   const handleWheel = (event: WheelEvent<HTMLDivElement>) => {
     event.preventDefault();

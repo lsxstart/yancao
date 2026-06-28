@@ -1,37 +1,40 @@
-import type { Plot } from "@yancao/domain";
+import type { DroneDetectionRecord, ScreenPlot } from "../api";
 
 interface WarningPanelProps {
-  plot?: Plot | null;
+  detection?: DroneDetectionRecord;
+  plot?: ScreenPlot;
 }
 
 const detectedDiseaseName = "烟草病毒病";
 
-const plotCoordinates: Record<string, string> = {
-  "xunyi-003": "35.12°N, 108.33°E",
-  "xunyi-001": "35.10°N, 108.31°E",
-  "xunyi-007": "35.09°N, 108.36°E",
-  "fuxian-002": "35.99°N, 109.38°E",
-  "baoji-006": "34.36°N, 107.24°E"
-};
+function getDiseaseDegree(level?: string, rate = 0) {
+  if (level) return level;
+  if (rate > 15) return "重度";
+  if (rate >= 5) return "中度";
+  return "轻度";
+}
 
-export function WarningPanel({ plot }: WarningPanelProps) {
-  if (!plot) return null;
+export function WarningPanel({ detection, plot }: WarningPanelProps) {
+  if (!plot && !detection) return null;
 
-  const totalCount = Math.round(plot.areaMu * 120);
-  const diseasedCount = Math.round(totalCount * (100 - plot.healthRate) / 100);
+  const totalCount = detection?.totalPlants ?? 0;
+  const diseasedCount = detection?.infectedPlants ?? 0;
+  const normalCountFromApi = detection?.healthyPlants;
   const normalCount = totalCount - diseasedCount;
-  const diseaseRatio = Number((100 - plot.healthRate).toFixed(1));
-  const healthyRatio = Number(plot.healthRate.toFixed(1));
-  const diseaseDegree = diseaseRatio >= 30 ? "重度" : diseaseRatio >= 15 ? "中度" : "轻度";
-  const plotCoordinate = plotCoordinates[plot.id] ?? "35.12°N, 108.33°E";
+  const diseaseRatio = Number((detection?.infectionRate ?? 0).toFixed(1));
+  const healthyRatio = Number(Math.max(0, 100 - diseaseRatio).toFixed(1));
+  const diseaseDegree = getDiseaseDegree(detection?.diseaseLevel, diseaseRatio);
+  const plotCoordinate = plot?.latitude && plot?.longitude
+    ? `${plot.latitude.toFixed(2)}°N, ${plot.longitude.toFixed(2)}°E`
+    : "暂无坐标";
 
   return (
-    <div className={`plot-monitor level-${plot.diseaseLevel}`}>
+    <div className="plot-monitor">
       <section className="plot-monitor-result" aria-label="检测结果">
         <div>
           <span>病害识别结果</span>
         </div>
-        <strong>{detectedDiseaseName}</strong>
+        <strong>{detection?.diseaseName ?? detectedDiseaseName}</strong>
       </section>
 
       <section className="plot-monitor-scale" aria-label="烟苗健康分布">
@@ -48,7 +51,7 @@ export function WarningPanel({ plot }: WarningPanelProps) {
       <section className="plot-monitor-counts">
         <div>
           <span>正常烟苗</span>
-          <strong>{normalCount}</strong>
+          <strong>{normalCountFromApi ?? normalCount}</strong>
         </div>
         <div className="danger">
           <span>疑似病株</span>

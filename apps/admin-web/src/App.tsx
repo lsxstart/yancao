@@ -60,6 +60,7 @@ import type { MenuProps } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import {
   adminApi,
+  type AiModelRecord,
   type DetectionRecord,
   type DeviceRecord,
   type ImageRecord,
@@ -1105,6 +1106,21 @@ function DetectionPage({
   );
 
   const columns: ColumnsType<DetectionRecord> = [
+    ...(sourceType === "drone" ? [{
+      title: "烟田原图",
+      dataIndex: "oriImageUrl",
+      key: "oriImageUrl",
+      width: 100,
+      render: (url?: string) => url ? (
+        <Image
+          className="admin-thumb"
+          rootClassName="admin-thumb-preview"
+          src={url}
+          alt="烟田原图"
+          preview={{ src: url, rootClassName: "admin-image-fullscreen-preview", mask: false }}
+        />
+      ) : "-"
+    }] : []),
     { title: "结果图", dataIndex: "resultImageUrl", key: "resultImageUrl", width: 100, render: (url?: string) => url ? (
       <Image
         className="admin-thumb"
@@ -1114,13 +1130,6 @@ function DetectionPage({
         preview={{ src: url, rootClassName: "admin-image-fullscreen-preview", mask: false }}
       />
     ) : "-" },
-    ...(sourceType === "drone" ? [{
-      title: "图片ID",
-      dataIndex: "imageId",
-      key: "imageId",
-      width: 90,
-      render: (value?: number) => value ?? "-"
-    }] : []),
     { title: "烟田", dataIndex: "plotId", key: "plotId", width: 150, render: (id: number) => renderPlotName(plots, id) },
     { title: "识别病害", dataIndex: "diseaseName", key: "diseaseName", width: 190 },
     { title: "病害编码", dataIndex: "diseaseCode", key: "diseaseCode", width: 100, render: (value?: string) => value ? <Tag color="blue">{value}</Tag> : "-" },
@@ -1137,8 +1146,10 @@ function DetectionPage({
       width: 100,
       render: (value: string | undefined, record: DetectionRecord) => renderSeverity(value, record.infectionRate)
     }]),
-    { title: "总株数", dataIndex: "totalPlants", key: "totalPlants", width: 90, render: (value?: number) => value ?? "-" },
-    { title: "病株数", dataIndex: "infectedPlants", key: "infectedPlants", width: 90, render: (value?: number) => value ?? "-" },
+    ...(sourceType !== "camera" ? [
+      { title: "总株数", dataIndex: "totalPlants", key: "totalPlants", width: 90, render: (value?: number) => value ?? "-" },
+      { title: "病株数", dataIndex: "infectedPlants", key: "infectedPlants", width: 90, render: (value?: number) => value ?? "-" }
+    ] : []),
     ...(sourceType === "drone" ? [{
       title: "健康株数",
       dataIndex: "healthyPlants",
@@ -1146,7 +1157,7 @@ function DetectionPage({
       width: 100,
       render: (value?: number) => value ?? "-"
     }] : []),
-    {
+    ...(sourceType !== "camera" ? [{
       title: "发病率（%）",
       key: "infectionRate",
       width: 110,
@@ -1154,7 +1165,7 @@ function DetectionPage({
         const value = record.infectionRate ?? record.diseaseRatio;
         return typeof value === "number" ? value.toFixed(2) : "-";
       }
-    },
+    }] : []),
     { title: "检测时间", dataIndex: "detectTime", key: "detectTime", width: 180, render: (value?: string) => value || "-" }
   ];
 
@@ -1192,6 +1203,18 @@ function DetectionPage({
 
 function getDiseaseKnowledge(knowledge: KnowledgeRecord[], diseaseCode?: string, diseaseName?: string) {
   return knowledge.find((item) => item.diseaseCode === diseaseCode || item.diseaseName === diseaseName) ?? knowledge[0];
+}
+
+function isDefaultModel(model: AiModelRecord) {
+  return model.isDefault === true || model.isDefault === 1;
+}
+
+function getModelLabel(model: AiModelRecord) {
+  return [model.modelName, model.version].filter(Boolean).join(" ");
+}
+
+function getInitialModelId(models: AiModelRecord[]) {
+  return models.find(isDefaultModel)?.id ?? models[0]?.id;
 }
 
 function getDetectionLevel(rate?: number) {
@@ -1240,23 +1263,34 @@ function NearGroundDetectionPage({
   rows,
   plots,
   devices,
-  knowledge
+  knowledge,
+  models
 }: {
   rows: DetectionRecord[];
   plots: PlotRecord[];
   devices: DeviceRecord[];
   knowledge: KnowledgeRecord[];
+  models: AiModelRecord[];
 }) {
   const [sourceMode, setSourceMode] = useState<"upload" | "camera">("upload");
   const [plotId, setPlotId] = useState<number | undefined>(plots[0]?.id);
   const [deviceId, setDeviceId] = useState<number | undefined>();
+  const [modelId, setModelId] = useState<number | undefined>(() => getInitialModelId(models));
   const [previewUrl, setPreviewUrl] = useState("");
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<DetectionRecord | null>(null);
   const cameraDevices = devices.filter((device) => device.deviceType === "camera");
   const selectedCamera = cameraDevices.find((device) => device.id === deviceId);
   const currentResult = result ?? rows[0];
-  const diseaseInfo = getDiseaseKnowledge(knowledge, currentResult?.diseaseCode, currentResult?.diseaseName);
+  const nearGroundModels = models[0] ? [models[0]] : [];
+  const modelOptions = nearGroundModels.map((model) => ({ label: getModelLabel(model), value: model.id }));
+
+  useEffect(() => {
+    const nextModelId = getInitialModelId(nearGroundModels);
+    if (nextModelId && modelId !== nextModelId) {
+      setModelId(nextModelId);
+    }
+  }, [modelId, nearGroundModels]);
 
   const handleRunDetection = () => {
     const selectedDisease = knowledge[sourceMode === "upload" ? 0 : 1] ?? knowledge[0];
@@ -1267,6 +1301,7 @@ function NearGroundDetectionPage({
         plotId: sourceMode === "camera" ? selectedCamera?.plotId ?? plots[0]?.id ?? 1 : plotId ?? plots[0]?.id ?? 1,
         diseaseName: selectedDisease?.diseaseName ?? "烟草花叶病毒病",
         diseaseCode: selectedDisease?.diseaseCode ?? "TMV",
+        modelId,
         confidence: sourceMode === "upload" ? 88 : 82,
         infectionRate: sourceMode === "upload" ? 11 : 7,
         detectTime: formatNow()
@@ -1301,11 +1336,10 @@ function NearGroundDetectionPage({
                 </Form.Item>
                 <Form.Item label="检测模型" required>
                   <Select
-                    value="near-ground-v1"
-                    options={[
-                      { label: "近地烟草病毒病识别模型 v1.0", value: "near-ground-v1" },
-                      { label: "叶片病斑快速诊断模型", value: "leaf-fast-v1" }
-                    ]}
+                    value={modelId}
+                    options={modelOptions}
+                    placeholder="请选择检测模型"
+                    onChange={setModelId}
                   />
                 </Form.Item>
               </div>
@@ -1313,11 +1347,10 @@ function NearGroundDetectionPage({
               <div className="diagnosis-form-grid">
               <Form.Item label="检测模型" required>
                 <Select
-                  value="near-ground-v1"
-                  options={[
-                    { label: "近地烟草病毒病识别模型 v1.0", value: "near-ground-v1" },
-                    { label: "叶片病斑快速诊断模型", value: "leaf-fast-v1" }
-                  ]}
+                  value={modelId}
+                  options={modelOptions}
+                  placeholder="请选择检测模型"
+                  onChange={setModelId}
                 />
               </Form.Item>
                 <Form.Item label="摄像头" required>
@@ -1377,8 +1410,8 @@ function NearGroundDetectionPage({
                 </div>
                 <div className="near-ground-result-image">
                   <strong>检测后图片</strong>
-                  {currentResult.resultImageUrl || previewUrl ? (
-                    <img src={currentResult.resultImageUrl || previewUrl} alt="近地检测结果图片" />
+                  {currentResult.resultImageUrl ? (
+                    <img src={currentResult.resultImageUrl} alt="近地检测结果图片" />
                   ) : (
                     <div className="near-ground-image-empty">暂无检测结果图片</div>
                   )}
@@ -1395,14 +1428,14 @@ function NearGroundDetectionPage({
                       <ProfileOutlined />
                       <strong>典型症状</strong>
                     </div>
-                    <p>{diseaseInfo?.symptoms ?? "叶片疑似出现花叶、褪绿、皱缩或畸形等病毒病症状，建议结合田间调查进一步复核。"}</p>
+                    <p>接口调通后展示模型返回的典型症状。</p>
                   </section>
                   <section className="near-ground-detail-panel">
                     <div className="near-ground-detail-heading">
                       <SafetyCertificateOutlined />
                       <strong>防治建议</strong>
                     </div>
-                    <p>{diseaseInfo?.prevention ?? "建议及时隔离疑似病株，排查传毒媒介，加强田间清洁和工具消毒。"}</p>
+                    <p>建议及时隔离疑似病株，清理病残体，并加强田间巡查。</p>
                   </section>
                 </div>
               </div>
@@ -1421,6 +1454,7 @@ function DroneDetectionWorkspacePage({
   plots,
   images,
   knowledge,
+  models,
   loading,
   onViewHistory
 }: {
@@ -1428,11 +1462,13 @@ function DroneDetectionWorkspacePage({
   plots: PlotRecord[];
   images: ImageRecord[];
   knowledge: KnowledgeRecord[];
+  models: AiModelRecord[];
   loading: boolean;
   onViewHistory: () => void;
 }) {
   const [plotId, setPlotId] = useState<number | undefined>(plots[0]?.id);
   const [imageId, setImageId] = useState<number | undefined>(images[0]?.id);
+  const [modelId, setModelId] = useState<number | undefined>(() => getInitialModelId(models));
   const [imagePickerOpen, setImagePickerOpen] = useState(false);
   const [running, setRunning] = useState(false);
   const [taskSubmitted, setTaskSubmitted] = useState(false);
@@ -1447,6 +1483,16 @@ function DroneDetectionWorkspacePage({
   const diseaseRatio = currentResult?.diseaseRatio ?? currentResult?.infectionRate ?? 0;
   const level = getDetectionLevel(diseaseRatio);
   const treatmentAdvice = getDroneTreatmentAdvice(diseaseRatio);
+  const droneModels = models[1] ? [models[1]] : [];
+  const modelOptions = droneModels.map((model) => ({ label: getModelLabel(model), value: model.id }));
+  const selectedModel = droneModels.find((model) => model.id === modelId);
+
+  useEffect(() => {
+    const nextModelId = getInitialModelId(droneModels);
+    if (nextModelId && modelId !== nextModelId) {
+      setModelId(nextModelId);
+    }
+  }, [droneModels, modelId]);
 
   const handleRunDetection = () => {
     if (!selectedImage) {
@@ -1479,6 +1525,7 @@ function DroneDetectionWorkspacePage({
         id: Date.now(),
         imageId: selectedImage?.id,
         plotId: plotId ?? selectedImage?.plotId ?? plots[0]?.id ?? 1,
+        modelId,
         diseaseName: selectedDisease?.diseaseName ?? "黄瓜花叶病毒病",
         diseaseCode: selectedDisease?.diseaseCode ?? "CMV",
         confidence: 84,
@@ -1498,18 +1545,17 @@ function DroneDetectionWorkspacePage({
           <Space direction="vertical" size={10} className="full-width">
             <Form.Item label="选择模型" required>
               <Select
-                value="drone-region-v1"
-                options={[
-                  { label: "病虫害区域检测模型", value: "drone-region-v1" },
-                  { label: "无人机遥感病害分布模型", value: "drone-remote-v1" }
-                ]}
+                value={modelId}
+                options={modelOptions}
+                placeholder="请选择检测模型"
+                onChange={setModelId}
               />
             </Form.Item>
             <Alert
               type="success"
               showIcon
-              message="病虫害区域检测模型"
-              description="基于无人机大幅面图像识别疑似病害区域，输出发病比例、风险等级和区域防控建议。大图请先在数据管理中完成入库。"
+              message={selectedModel ? getModelLabel(selectedModel) : "未选择模型"}
+              description={selectedModel?.description ?? "基于无人机大幅面图像识别疑似病害区域，输出发病比例、风险等级和区域防控建议。大图请先在数据管理中完成入库。"}
             />
           </Space>
         </Card>
@@ -2077,6 +2123,7 @@ export function App() {
   const cameraDetectionsQuery = useQuery({ queryKey: ["admin-detections", "camera"], queryFn: () => adminApi.getDetections("camera"), enabled: isAuthenticated });
   const droneDetectionsQuery = useQuery({ queryKey: ["admin-detections", "drone"], queryFn: () => adminApi.getDetections("drone"), enabled: isAuthenticated });
   const knowledgeQuery = useQuery({ queryKey: ["admin-knowledge"], queryFn: adminApi.getKnowledge, enabled: isAuthenticated });
+  const modelsQuery = useQuery({ queryKey: ["admin-models"], queryFn: adminApi.getModels, enabled: isAuthenticated });
   const usersQuery = useQuery({ queryKey: ["admin-users"], queryFn: adminApi.getUsers, enabled: isAuthenticated });
   const rolesQuery = useQuery({ queryKey: ["admin-roles"], queryFn: adminApi.getRoles, enabled: isAuthenticated });
 
@@ -2085,6 +2132,7 @@ export function App() {
   const varieties = varietiesQuery.data?.records ?? [];
   const devices = devicesQuery.data?.records ?? [];
   const knowledge = knowledgeQuery.data?.records ?? [];
+  const models = modelsQuery.data?.records ?? [];
   const users = usersQuery.data?.records ?? [];
   const roles = rolesQuery.data ?? [];
   const mobileImages = mobileImagesQuery.data?.records ?? [];
@@ -2309,6 +2357,7 @@ export function App() {
             plots={plots}
             devices={devices}
             knowledge={knowledge}
+            models={models}
           />
         );
       case "result-drone":
@@ -2318,6 +2367,7 @@ export function App() {
             plots={plots}
             images={droneImages}
             knowledge={knowledge}
+            models={models}
             loading={droneDetectionsQuery.isLoading}
             onViewHistory={() => openPage("image-drone")}
           />
@@ -2383,8 +2433,7 @@ export function App() {
         <main className="login-page">
           <section className="login-visual">
             <div className="login-brand-panel">
-              <span>TOBACCO DIGITAL PRODUCTION PLATFORM</span>
-              <h1>烟草数字化生产管理平台</h1>
+              <h1>烟草病毒病人工智能监测预警系统</h1>
               <p>统一管理烟区、烟田、图像、检测结果、设备和用户权限，支撑烟草病毒病识别与防控业务闭环。</p>
             </div>
           </section>
@@ -2483,7 +2532,7 @@ export function App() {
               >
                 {siderCollapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
               </Button>
-              <div className="admin-header-title">烟草病毒病人工智能监测预警系统管理后台</div>
+              <div className="admin-header-title">烟草病毒病人工智能监测预警系统</div>
               <Space className="admin-header-actions">
                 <Button onClick={handleLogout} type="primary">退出登录</Button>
               </Space>

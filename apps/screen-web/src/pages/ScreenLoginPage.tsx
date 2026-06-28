@@ -1,4 +1,5 @@
 import { FormEvent, useState } from "react";
+import { screenApi } from "../api";
 
 interface ScreenLoginPageProps {
   onLogin: () => void;
@@ -9,24 +10,29 @@ export function ScreenLoginPage({ onLogin }: ScreenLoginPageProps) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (username !== "admin" || password !== "admin123") {
-      setError("账号或密码不正确，请使用 admin / admin123 登录。");
-      return;
-    }
-
-    localStorage.setItem("YANCAO_SCREEN_TOKEN", "mock-screen-token");
+    setLoading(true);
     setError("");
-    onLogin();
+    try {
+      const result = await screenApi.login({ username, password });
+      localStorage.setItem("YANCAO_SCREEN_TOKEN", result.token);
+      onLogin();
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "登录失败，请检查账号密码或后端服务。");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <main className="screen-login-page">
       <section className="screen-login-visual">
         <div className="screen-login-copy">
-          <h1>烟草病虫害监测与防治大屏</h1>
+          <h1>烟草病毒病人工智能监测预警大屏</h1>
           <p>面向监测中心、植保人员和管理人员，集中展示烟田地块、病害预警、气象墒情、视频巡检和防治建议。</p>
         </div>
       </section>
@@ -48,8 +54,8 @@ export function ScreenLoginPage({ onLogin }: ScreenLoginPageProps) {
             />
           </label>
           {error && <p className="screen-login-error">{error}</p>}
-          <button type="submit">登录大屏</button>
-          <p className="screen-login-tip">演示账号：admin / admin123</p>
+          <button disabled={loading} type="submit">{loading ? "登录中..." : "登录大屏"}</button>
+          <p className="screen-login-tip">请输入后端账号登录。</p>
         </form>
       </section>
     </main>

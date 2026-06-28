@@ -1,25 +1,19 @@
-import type { RegionId } from "@yancao/domain";
 import { create } from "zustand";
 
 interface ScreenState {
-  selectedRegionId: RegionId;
-  selectedPlotId: string;
-  setSelectedRegionId: (regionId: RegionId) => void;
-  setSelectedPlotId: (plotId: string) => void;
+  selectedRegionId?: number;
+  selectedPlotId?: number;
+  setSelectedRegionId: (regionId: number) => void;
+  setSelectedPlotId: (plotId: number) => void;
 }
 
 export const useScreenStore = create<ScreenState>()((set) => ({
-  selectedRegionId: "xunyi",
-  selectedPlotId: "xunyi-003",
+  selectedRegionId: undefined,
+  selectedPlotId: undefined,
   setSelectedRegionId: (selectedRegionId) =>
     set(() => ({
       selectedRegionId,
-      selectedPlotId:
-        selectedRegionId === "xunyi"
-          ? "xunyi-003"
-          : selectedRegionId === "fuxian"
-            ? "fuxian-002"
-            : "baoji-006"
+      selectedPlotId: undefined
     })),
   setSelectedPlotId: (selectedPlotId) => set(() => ({ selectedPlotId }))
 }));

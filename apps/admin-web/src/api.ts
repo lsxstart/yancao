@@ -97,6 +97,17 @@ export interface DeviceRecord {
   status: number;
 }
 
+export interface AiModelRecord {
+  id: number;
+  modelName: string;
+  version?: string;
+  isDefault?: number | boolean;
+  apiUrl?: string;
+  apiMethod?: string;
+  description?: string;
+  status?: number;
+}
+
 export interface ImageRecord {
   id: number;
   plotId: number;
@@ -124,6 +135,7 @@ export interface DetectionRecord {
   infectionRate?: number;
   diseaseRatio?: number;
   diseaseLevel?: string;
+  oriImageUrl?: string;
   resultImageUrl?: string;
   detectTime?: string;
   createTime?: string;
@@ -206,6 +218,18 @@ async function unwrap<T>(request: Promise<{ data: ApiResponse<T> }>) {
   return response.data.data;
 }
 
+function normalizePageData<T>(data: PageResult<T> | T[]): PageResult<T> {
+  if (Array.isArray(data)) {
+    return {
+      total: data.length,
+      pageNum: 1,
+      pageSize: data.length,
+      records: data
+    };
+  }
+  return data;
+}
+
 const httpAdminApi = {
   login: (payload: { username: string; password: string }) =>
     unwrap<LoginResult>(adminHttp.post("/auth/login", payload)),
@@ -232,6 +256,7 @@ const httpAdminApi = {
   deleteDevice: (id: number) => unwrap<null>(adminHttp.delete(`/device/${id}`)),
   updateDeviceStatus: (id: number, status: number) =>
     unwrap<null>(adminHttp.put(`/device/${id}/status`, null, { params: { status } })),
+  getModels: async () => normalizePageData(await unwrap<PageResult<AiModelRecord> | AiModelRecord[]>(adminHttp.get("/model/list", { params: { pageNum: 1, pageSize: 100 } }))),
   getImages: (type: "mobile" | "camera" | "drone") =>
     unwrap<PageResult<ImageRecord>>(adminHttp.get(`/image/${type}/list`, { params: { pageNum: 1, pageSize: 100 } })),
   createImage: (type: "mobile" | "camera" | "drone", payload: Omit<ImageRecord, "id" | "createTime">) =>
@@ -345,6 +370,27 @@ let mockDevices: DeviceRecord[] = [
   { id: 2, plotId: 2, deviceCode: "XY-CAM-001", deviceName: "旬邑侯家沟摄像头", deviceType: "camera", model: "IPC-4M", apiUrl: "http://mock.local/camera/2", onlineStatus: 1, status: 1 },
   { id: 3, plotId: 4, deviceCode: "FX-CAM-001", deviceName: "富县固定摄像头", deviceType: "camera", model: "IPC-4M", apiUrl: "http://mock.local/camera/3", onlineStatus: 0, status: 1 },
   { id: 4, plotId: 2, deviceCode: "UAV-001", deviceName: "旬邑巡检无人机", deviceType: "drone", model: "UAV-X1", apiUrl: "http://mock.local/drone/1", onlineStatus: 1, status: 1 }
+];
+
+let mockModels: AiModelRecord[] = [
+  {
+    id: 1,
+    modelName: "近地烟草病毒病识别模型",
+    version: "v1.0",
+    isDefault: 1,
+    apiUrl: "http://mock.local/model/near-ground",
+    apiMethod: "POST",
+    description: "用于手机图片和摄像头抓帧的烟草病毒病识别。"
+  },
+  {
+    id: 2,
+    modelName: "病虫害区域检测模型",
+    version: "v1.0",
+    isDefault: 0,
+    apiUrl: "http://mock.local/model/drone-region",
+    apiMethod: "POST",
+    description: "用于无人机大幅面图像的病害区域检测。"
+  }
 ];
 
 let mockMobileImages: ImageRecord[] = [
@@ -492,6 +538,7 @@ const mockAdminApi: typeof httpAdminApi = {
     findRecord(mockDevices, id, "设备").status = status;
     return mockResolve(null);
   },
+  getModels: () => mockResolve(toPage(mockModels)),
   getImages: (type) => {
     const source = type === "mobile" ? mockMobileImages : type === "camera" ? mockCameraImages : mockDroneImages;
     return mockResolve(toPage(scopedByPlot(source)));

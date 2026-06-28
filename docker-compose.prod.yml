@@ -1,0 +1,13 @@
+services:
+  yancao-web:
+    build:
+      context: .
+      args:
+        VITE_API_BASE_URL: /api/v1
+    image: yancao-web:latest
+    container_name: yancao-web
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
