@@ -2,6 +2,7 @@ import { useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { tobaccoApi } from "@yancao/sdk";
 import { screenApi } from "../api";
+import { assetUrl } from "../assets";
 import { DiseaseShowcase } from "../components/DiseaseShowcase";
 import { MapPanel } from "../components/MapPanel";
 import { Panel } from "../components/Panel";
@@ -75,7 +76,7 @@ export function TobaccoScreenPage() {
   return (
     <main className="screen-page">
       <header className="screen-title">
-        <img className="screen-logo" src="/logo/9547aa6d08d7a72e9a040a7918a7cfe6.png" alt="平台标识" />
+        <img className="screen-logo" src={assetUrl("/logo/9547aa6d08d7a72e9a040a7918a7cfe6.png")} alt="平台标识" />
         <div>
           <h1>烟草病毒病人工智能监测预警大屏</h1>
         </div>

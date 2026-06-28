@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { DiseaseCase, Plot } from "@yancao/domain";
+import { assetUrl } from "../assets";
 
 interface DiseaseShowcaseProps {
   diseaseCases: DiseaseCase[];
@@ -22,7 +23,7 @@ const tobaccoVirusCases: TobaccoVirusCase[] = [
     id: "tmv",
     name: "烟草花叶病毒病",
     shortName: "TMV",
-    imageUrl: "/kb/tmv/1105a6418852b20b59c0c74d7bd6327d.jpg",
+    imageUrl: assetUrl("/kb/tmv/1105a6418852b20b59c0c74d7bd6327d.jpg"),
     riskLevel: 4,
     summary: "由烟草花叶病毒引起，主要通过带毒种苗、病株汁液、人员和农具接触传播。病叶常出现黄绿相间的花叶、皱缩和畸形，严重时植株生长受阻。",
     prevention: "使用健康种苗，及时清除病株和田间残体，避免接触烟株前吸烟或接触烟草制品，并做好手部、农具和机械消毒。田间作业应先健康区、后发病区，重点减少机械传播。"
@@ -31,7 +32,7 @@ const tobaccoVirusCases: TobaccoVirusCase[] = [
     id: "cmv",
     name: "烟草黄瓜花叶病毒病",
     shortName: "CMV",
-    imageUrl: "/kb/cmv/0af563fbce1ec7c43e9a9caa536ca17d.png",
+    imageUrl: assetUrl("/kb/cmv/0af563fbce1ec7c43e9a9caa536ca17d.png"),
     riskLevel: 4,
     summary: "由黄瓜花叶病毒引起，主要通过蚜虫传播。病株叶片常出现黄绿花叶、皱缩和畸形，严重时叶片变窄、植株矮化。",
     prevention: "选用健康种苗，及时清除杂草和病株，加强蚜虫监测，保持工具清洁，减少病株汁液接触健康烟株。药剂应严格按照登记标签使用，防控重点是提前预防和控制传播。"
@@ -40,7 +41,7 @@ const tobaccoVirusCases: TobaccoVirusCase[] = [
     id: "pvy",
     name: "烟草马铃薯Y病毒病",
     shortName: "PVY",
-    imageUrl: "/kb/pvy/f31c1ac138aace1d408cb3887f51c781.png",
+    imageUrl: assetUrl("/kb/pvy/f31c1ac138aace1d408cb3887f51c781.png"),
     riskLevel: 3,
     summary: "由马铃薯Y病毒引起，主要通过蚜虫及病株汁液传播。病株可出现花叶、叶脉褪绿、坏死斑、叶片畸形和植株矮化。",
     prevention: "使用健康种苗，清除病株及茄科杂草，避免与马铃薯、辣椒、番茄等寄主作物相邻种植。加强蚜虫监测和工具消毒，减少病毒在田间传播。"
@@ -49,7 +50,7 @@ const tobaccoVirusCases: TobaccoVirusCase[] = [
     id: "tswv",
     name: "烟草番茄斑萎病毒病",
     shortName: "TSWV",
-    imageUrl: "/kb/tswv/a70c57c711962bbf8e28e9044526cd5e.png",
+    imageUrl: assetUrl("/kb/tswv/a70c57c711962bbf8e28e9044526cd5e.png"),
     riskLevel: 5,
     summary: "由番茄斑萎病毒引起，主要通过蓟马传播。病株常出现叶片黄斑、褐色坏死斑、叶脉褐变和植株矮化，严重时可能整株死亡。",
     prevention: "使用无病毒、无蓟马种苗，清除烟田周边杂草和病株，加强苗床及移栽初期的蓟马监测。结合防虫网和登记药剂控制蓟马，重点做好早期预防。"

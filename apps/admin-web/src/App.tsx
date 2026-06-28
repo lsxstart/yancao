@@ -71,6 +71,7 @@ import {
   type VarietyRecord,
   type ZoneRecord
 } from "./api";
+import { assetUrl } from "./assets";
 import "./styles.css";
 
 const { Header, Sider, Content } = Layout;
@@ -616,7 +617,7 @@ function HomePage({ onNavigate }: { onNavigate: (page: PageKey) => void }) {
       title: "多模态数据管理",
       description: "统一管理烟区、烟田、图像、设备及用户权限数据。",
       icon: <DatabaseOutlined />,
-      image: "/pic/homepic1.png",
+      image: assetUrl("/pic/homepic1.png"),
       summary: "烟区 | 烟田 | 烟草品种 | 图像管理 | 结果管理等",
       tone: "green",
       links: [
@@ -640,7 +641,7 @@ function HomePage({ onNavigate }: { onNavigate: (page: PageKey) => void }) {
       title: "烟草病毒病诊断",
       description: "通过近地图片、摄像头抓帧和无人机影像完成智能诊断。",
       icon: <BugOutlined />,
-      image: "/pic/homepic2.png",
+      image: assetUrl("/pic/homepic2.png"),
       summary: "近地检测 | 无人机检测",
       tone: "blue",
       links: [
@@ -2473,7 +2474,7 @@ export function App() {
             className="admin-sider"
           >
             <div className="admin-brand">
-              <img src="/logo/9547aa6d08d7a72e9a040a7918a7cfe6.png" alt="平台标识" />
+              <img src={assetUrl("/logo/9547aa6d08d7a72e9a040a7918a7cfe6.png")} alt="平台标识" />
             </div>
             {siderCollapsed ? (
               <div className="collapsed-sider-menu">

@@ -1,3 +1,5 @@
+import { assetUrl } from "../assets";
+
 interface VideoPlot {
   id: number;
   name: string;
@@ -10,7 +12,7 @@ interface VideoPanelProps {
 
 export function VideoPanel({ plots, selectedPlotId }: VideoPanelProps) {
   const selectedIndex = Math.max(plots.findIndex((plot) => plot.id === selectedPlotId), 0);
-  const videoSrc = `/video/视频${(selectedIndex % 3) + 1}.mp4`;
+  const videoSrc = assetUrl(`/video/视频${(selectedIndex % 3) + 1}.mp4`);
 
   return (
     <div className="video-preview">
